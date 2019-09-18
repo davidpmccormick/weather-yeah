@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div class="pad-row spaced">
     <RightNow/>
     <!-- <Alerts/> -->
-    <!-- <ThisHour/> -->
+    <ThisHour/>
     <NextLittleWhile/>
     <ThisWeek/>
     <PoweredBy/>
@@ -17,8 +17,6 @@ import Alerts from "~/components/Alerts";
 import ThisWeek from "~/components/ThisWeek";
 import PoweredBy from "~/components/PoweredBy";
 
-import { mapMutations } from "vuex";
-
 export default {
   async asyncData({ env, $axios, store }) {
     const { darkSkyKey, darkSkyBaseUrl, digbyLatLng } = env;
@@ -29,19 +27,13 @@ export default {
     );
 
     store.commit("setCurrently", currently);
-    store.commit("setHours", hourly.data.slice(1, 17));
+    store.commit("setHours", hourly.data.slice(1, 25));
     store.commit("setHourlySummary", hourly.summary);
     store.commit("setMinutely", minutely);
     store.commit("setAlerts", alerts);
     store.commit("setDaily", daily);
   },
-  mounted() {
-    window.addEventListener("resize", this.updatePageWidth);
-    this.updatePageWidth();
-  },
-  beforeDestroy() {
-    window.removeEventListener("resize", this.updatePageWidth);
-  },
+
   components: {
     NextLittleWhile,
     RightNow,
@@ -49,12 +41,6 @@ export default {
     Alerts,
     ThisWeek,
     PoweredBy
-  },
-  methods: {
-    ...mapMutations(["setPageWidth"]),
-    updatePageWidth() {
-      this.setPageWidth(this.$el.clientWidth);
-    }
   }
 };
 </script>

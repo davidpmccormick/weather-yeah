@@ -1,21 +1,23 @@
 <template>
-  <div>
-    <div class="pad-row">
+  <div class="spaced">
+    <div>
       <h2>Next little while</h2>
       <p>{{hourlySummary}}</p>
     </div>
-    <Bars/>
-    <Details/>
+    <div>
+      <Bars/>
+      <!-- <Detail/> -->
+    </div>
   </div>
 </template>
 
 <script>
 import Bars from "~/components/Bars";
-import Details from "~/components/Details";
+import Detail from "~/components/Detail";
 import { mapState } from "vuex";
 
 export default {
-  components: { Bars, Details },
+  components: { Bars, Detail },
   computed: {
     ...mapState(["hourlySummary"])
   }

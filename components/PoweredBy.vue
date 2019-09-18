@@ -1,5 +1,5 @@
 <template>
-  <p class="pad-row">
+  <p>
     <a href="https://darksky.net/poweredby/">Powered by Dark Sky</a>
   </p>
 </template>

@@ -17,12 +17,16 @@ html {
   margin: 0;
 }
 
+h2 {
+  font-size: 1.8em;
+}
+
 .no-padding {
   padding: 0;
 }
 
 .full-width {
-  width: 100vw;
+  width: calc(100vw - 40px);
 }
 
 .inline-grid {
@@ -45,8 +49,12 @@ html {
   grid-template-columns: repeat(8, 1fr);
 }
 
+.grid-12 {
+  grid-template-columns: repeat(12, 1fr);
+}
+
 .grid-100-100 {
-  grid-template-columns: 100vw 100vw;
+  grid-template-columns: repeat(3, calc(100vw - 40px));
 }
 
 .overflow-x-auto {
@@ -102,6 +110,12 @@ html {
 
 .justify-center {
   justify-content: center;
+}
+
+.spaced {
+  > * + * {
+    margin-top: 20px;
+  }
 }
 </style>
 

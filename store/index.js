@@ -7,38 +7,64 @@ export const state = () => ({
   minutely: null,
   alerts: null,
   daily: {},
-  detailsLeft: 0,
-  barsLeft: 0,
-  detailsEl: null,
-  barsEl: null,
-  pageWidth: null
+  activeBarIndex: null
 });
 
-const __SHAME_MAGIC_NUMBER_FOUR_FOR_SOME_REASON = 4;
-
 export const getters = {
+  sunriseToday(state) {
+    return state.daily.data[0].sunriseTime;
+  },
+  sunsetToday(state) {
+    return state.daily.data[0].sunsetTime;
+  },
+  sunriseTomorrow(state) {
+    return state.daily.data[1].sunriseTime;
+  },
+  sunsetTomorrow(state) {
+    return state.daily.data[1].sunsetTime;
+  },
+  fiveMinutely(state) {
+    return [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+      .map(interval => {
+        return state.minutely.data
+          .slice(interval, interval + 5)
+          .map(minOfFive => {
+            return [minOfFive.precipIntensity, minOfFive.precipProbability];
+          })
+          .reduce(
+            (acc, curr) => {
+              return [acc[0] + curr[0], acc[1] + curr[1]];
+            },
+            [0, 0]
+          );
+      })
+      .map(([i, p], index) => {
+        return {
+          interval: (index + 1) * 5,
+          intensity: i / 5,
+          probability: p / 5
+        };
+      });
+  },
+  shouldShowThisHour(state, getters) {
+    return getters.fiveMinutely.some(({ probability }) => probability > 0.2);
+  },
   dailyHighRange(state) {
     const sortedRange = state.daily.data
       .map(d => d.temperatureHigh)
       .sort((a, b) => a - b);
     return [sortedRange[0], sortedRange[sortedRange.length - 1]];
   },
-  isOnSamePage(state, getters) {
-    return (
-      (getters.activeBarIndex <= 7 && state.barsLeft === 0) ||
-      (getters.activeBarIndex >= 8 && state.barsLeft > 0)
-    );
-  },
-  activeBarIndex(state) {
-    return !state.pageWidth
-      ? 0
-      : Math.round(state.detailsLeft / state.pageWidth);
+  activeHour(state) {
+    return state.hours[state.activeBarIndex];
   },
   colorForActiveHour(state, getters) {
-    return colorForTemperature(state.hours[getters.activeBarIndex].temperature);
+    return (
+      getters.activeHour && colorForTemperature(getters.activeHour.temperature)
+    );
   },
   barHeightsForHours(state) {
-    const ouputStart = 50;
+    const ouputStart = 55;
     const outputEnd = 120;
     const t = state.hours.map(h => h.temperature).sort((a, b) => a - b);
 
@@ -49,55 +75,6 @@ export const getters = {
             (h.temperature - t[0])
       );
     });
-  }
-};
-
-export const actions = {
-  scrollDetails({ state, getters }, index) {
-    // Disable scrolling
-    getters.isOnSamePage && state.detailsEl.classList.add("overflow-hidden");
-
-    if (!state.pageWidth || !state.detailsEl) return;
-
-    window.requestAnimationFrame(() => {
-      state.detailsEl.scrollTo({ left: index * state.pageWidth });
-
-      // Re-enable scrolling
-      getters.isOnSamePage &&
-        setTimeout(() => {
-          state.detailsEl.classList.remove("overflow-hidden");
-        }, 0);
-    });
-  },
-  updateBarsScrollLeft({ state, getters }) {
-    if (getters.activeBarIndex > 7) {
-      window.requestAnimationFrame(() => {
-        state.barsEl.scrollTo({
-          left: state.pageWidth + __SHAME_MAGIC_NUMBER_FOUR_FOR_SOME_REASON
-        });
-      });
-    } else {
-      window.requestAnimationFrame(() => {
-        state.barsEl.scrollTo({ left: 0 });
-      });
-    }
-  },
-  handleBarsScroll({ state, commit, getters, dispatch }) {
-    commit("setBarsLeft", state.barsEl.scrollLeft);
-
-    if (state.barsLeft >= state.pageWidth) {
-      if (getters.activeBarIndex <= 7) {
-        dispatch("scrollDetails", 8);
-      }
-    } else if (state.barsLeft === 0) {
-      if (getters.activeBarIndex >= 8) {
-        dispatch("scrollDetails", 7);
-      }
-    }
-  },
-  handleDetailsScroll({ state, commit, dispatch }) {
-    commit("setDetailsLeft", state.detailsEl.scrollLeft);
-    dispatch("updateBarsScrollLeft");
   }
 };
 
@@ -126,13 +103,10 @@ export const mutations = {
   setDetailsEl(state, value) {
     state.detailsEl = value;
   },
-  setBarsEl(state, value) {
-    state.barsEl = value;
+  setIsScrollingBars(state, value) {
+    state.isScrollingBars = value;
   },
-  setPageWidth(state, value) {
-    state.pageWidth = value;
-  },
-  setBarsLeft(state, value) {
-    state.barsLeft = value;
+  setActiveBarIndex(state, value) {
+    state.activeBarIndex = state.activeBarIndex === value ? null : value;
   }
 };

@@ -1,27 +1,28 @@
 <template>
-  <div class="inline-grid full-width detail">
-    <span>{{round(hour.temperature)}}º</span>
-    <span>wind bearing: {{round(hour.windBearing)}}</span>
+  <div class="inline-grid full-width detail" :style="{background: colorForActiveHour}">
+    <img :src="iconSrc(hours[activeBarIndex].icon)" style="width: 50px;">
+    <span>{{hours[activeBarIndex].temperature}}°</span>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 export default {
-  props: ["index"],
   computed: {
-    ...mapState(["hours"]),
-    hour() {
-      return this.hours[this.index];
-    }
+    ...mapGetters(["colorForActiveHour"]),
+    ...mapState(["hours", "activeBarIndex"])
   }
 };
 </script>
 
 <style>
 .detail {
-  height: 100px;
+  height: 85px;
   padding: 10px;
   color: white;
+  border-radius: 6px;
+  position: absolute;
+  bottom: 0;
+  z-index: 1;
 }
 </style>
