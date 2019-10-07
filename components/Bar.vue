@@ -13,7 +13,7 @@
         <span
           class="font-s bar__arrow"
           :style="{display: 'block', lineHeight: 1, transform: `rotate(${hour.windBearing + 90}deg)`}"
-        >➔</span>
+        >➤</span>
         <div class="wind-text">
           <span>{{round(hour.windSpeed)}}</span>
           <span>{{humanBearing(hour.windBearing).short}}</span>
@@ -23,16 +23,24 @@
     <span class="mini-details">
       <span>{{barTime}}</span>
       <div
-        class="possible-rain"
+        v-show="activeBarIndex === null"
         :style="{
-          background: hour.precipProbability >= 0.2 ? '#53d7dd' : 'transparent',
-          height: hour.precipProbability >= 0.2
-          ?  `${mapInputToRange(round(1 * 100), [0, 100], [50, 88])}px`
-          : 'auto'
+          height: activeBarIndex === null ? '80px' : 0
         }"
       >
-        <Icon :icon="hour.icon" :dark="isDark"/>
-        <span v-if="hour.precipProbability >= 0.2">{{round(1 * 100)}}%</span>
+        <div
+          class="possible-rain"
+          :style="{background: hour.precipProbability >= 0.2 ? '#53d7dd' : 'transparent', height: mapInputToRange(hour.precipProbability, [0, 1], [60, 80]) + 'px'}"
+        >
+          <Icon :icon="hour.icon" :dark="isDark"/>
+          <div class="rain-percent-mm">
+            <span
+              class="font-xs"
+              v-if="hour.precipProbability >= 0.2"
+            >{{round(hour.precipProbability * 100)}}%</span>
+            <span class="font-xs">{{mmPerHour}}</span>
+          </div>
+        </div>
       </div>
     </span>
   </div>
@@ -56,6 +64,11 @@ export default {
       "sunriseTomorrow",
       "sunsetTomorrow"
     ]),
+    mmPerHour() {
+      const mm = this.round(this.hour.precipIntensity);
+
+      return mm === 0 ? "0.5mm" : `${mm}mm`;
+    },
     hour() {
       return this.hours[this.index];
     },
@@ -147,6 +160,11 @@ export default {
 </script>
 
 <style lang="scss">
+.rain-percent-mm {
+  display: flex;
+  flex-direction: column;
+}
+
 .mini-details {
   margin: 3px 0 0;
   left: 0;

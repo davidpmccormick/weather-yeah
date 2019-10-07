@@ -25,7 +25,7 @@
       <div
         class="rain-bar"
         v-for="fiveMinutes in fiveMinutely"
-        :style="{height: rainBarHeight(fiveMinutes.intensity), opacity: fiveMinutes.probability}"
+        :style="{height: rainBarHeight(fiveMinutes.intensity), opacity: fiveMinutes.probability, animationDuration: (Math.random() * 500) + 1500 + 'ms'}"
         :key="fiveMinutes.interval"
       ></div>
     </div>
@@ -40,16 +40,17 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import mapInputToRange from "~/utils/map-input-to-range";
 
 export default {
   computed: {
+    ...mapState(["minutely"]),
     ...mapGetters(["shouldShowThisHour", "fiveMinutely"])
   },
   methods: {
     rainBarHeight(intensity) {
-      const fifteenToOneHundred = intensity * 6.66;
+      const fifteenToOneHundred = intensity * 25;
       const input = fifteenToOneHundred >= 100 ? 100 : fifteenToOneHundred;
 
       return `${mapInputToRange(input, [0, 100], [10, 100])}px`;
@@ -60,9 +61,10 @@ export default {
 
 <style lang="scss">
 .rain-bars {
-  height: 100px;
+  height: 80px;
   position: relative;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #ccc;
+  overflow: hidden;
 }
 
 .downpour,
@@ -72,38 +74,67 @@ export default {
   left: 0;
   right: 0;
   font-size: 0.6em;
-  color: #aaa;
+  color: #ccc;
 }
 
 .downpour {
-  bottom: 80px;
+  bottom: 80%;
 }
 
 .steady {
-  bottom: 50px;
+  bottom: 50%;
 }
 
 .drizzle {
-  bottom: 20px;
+  bottom: 20%;
 }
 .rain-bar {
   background: #53d7dd;
   border-radius: 6px 6px 0 0;
+  position: relative;
+
+  &:after {
+    content: "";
+    position: absolute;
+    animation: wibble ease infinite;
+    animation-duration: inherit;
+    left: 0;
+    right: 0;
+    height: 20px;
+    border-radius: 6px 6px 0 0;
+    background: inherit;
+  }
 }
 
 .dash {
   position: relative;
   flex: 1;
-  border-top: 1px dashed #ddd;
+  border-top: 1px dashed #ccc;
   transform: translateY(50%);
+  z-index: 1;
 }
 
 .rain-word {
   padding: 0 6px;
   letter-spacing: 0.05em;
+  z-index: 1;
 }
 
 .flex--between {
   justify-content: space-between;
+}
+
+@keyframes wibble {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-2px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 </style>

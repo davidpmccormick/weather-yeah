@@ -1,4 +1,5 @@
 import colorForTemperature from "../utils/color-for-temperature";
+import axios from "axios";
 
 export const state = () => ({
   hours: [],
@@ -7,7 +8,10 @@ export const state = () => ({
   minutely: null,
   alerts: null,
   daily: {},
-  activeBarIndex: null
+  activeBarIndex: null,
+  latitude: "51.5638522",
+  longitude: "-0.0968134",
+  provider: "darksky"
 });
 
 export const getters = {
@@ -78,7 +82,32 @@ export const getters = {
   }
 };
 
+export const actions = {
+  async getWeatherData({ commit, state }) {
+    const {
+      data: { minutely, hourly, daily, alerts, currently }
+    } = await axios.get(
+      `/${state.provider}/${state.latitude},${state.longitude}?units=uk2`
+    );
+    commit("setCurrently", currently);
+    commit("setHours", hourly.data.slice(1, 25));
+    commit("setHourlySummary", hourly.summary);
+    commit("setMinutely", minutely);
+    commit("setAlerts", alerts);
+    commit("setDaily", daily);
+  }
+};
+
 export const mutations = {
+  setProvider(state, value) {
+    state.provider = value;
+  },
+  setLatitude(state, value) {
+    state.latitude = value;
+  },
+  setLongitude(state, value) {
+    state.longitude = value;
+  },
   setHours(state, value) {
     state.hours = value;
   },

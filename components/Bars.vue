@@ -17,6 +17,7 @@
         </div>
       </div>
     </div>
+    <Detail v-if="activeHour"/>
   </div>
 </template>
 

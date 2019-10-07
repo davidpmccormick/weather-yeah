@@ -1,20 +1,16 @@
 <template>
-  <div class="spaced">
-    <div>
-      <h2>Right now</h2>
-      <p>{{currently.summary}}. {{round(currently.windSpeed)}}mph winds from the {{humanBearing(currently.windBearing).long}}. The UV index is {{currently.uvIndex}} and the nearest storm is {{currently.nearestStormDistance}} miles away.</p>
-    </div>
-    <div>
-      <div class="flex align-center">
-        <div
-          :style="{ backgroundColor: colorForTemperature(currently.temperature), backgroundImage: `url(${iconSrc(currently.icon)})` }"
-          style="margin-right: 20px; display: flex; width: 120px; height: 120px; align-items: center; justify-content: center; padding: 20px; border-radius: 9999px;background-size: 80%; background-repeat: no-repeat; background-position: center;"
-        ></div>
-        <div>
-          <strong style="font-size: 3.6em;">{{round(currently.temperature)}}°</strong>
-          <p
-            style="color: #aaa; font-weight: bold"
-          >Feels like {{round(currently.apparentTemperature)}}°</p>
+  <div>
+    <h2>Right now</h2>
+    <div class="right-now-scroller-wrapper" :style="{height: height ? `${height}px` : 'auto'}">
+      <div
+        ref="right-now-scroller"
+        class="overflow-x-auto grid grid-100-100 grid-gap snap-scroll nowrap"
+      >
+        <div class="full-width">
+          <BigDetails ref="big-details"/>
+        </div>
+        <div class="full-width">
+          <CurrentBreakdown ref="current-breakdown"/>
         </div>
       </div>
     </div>
@@ -22,14 +18,51 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapGetters } from "vuex";
+import BigDetails from "~/components/BigDetails";
+import CurrentBreakdown from "~/components/CurrentBreakdown";
 
 export default {
+  mounted() {
+    const rightNowScrollerEl = this.$refs["right-now-scroller"];
+    const bigDetailsEl = this.$refs["big-details"].$el;
+    const currentBreakdownEl = this.$refs["current-breakdown"].$el;
+
+    const bigDetailsHeight = bigDetailsEl.getBoundingClientRect().height;
+    const currentBreakdownHeight = currentBreakdownEl.getBoundingClientRect()
+      .height;
+
+    this.height = bigDetailsHeight;
+
+    this.updateHeight = () => {
+      // TODO: throttle this
+      // TODO: removeEventListener in willUnmount();
+      const isBigDetails =
+        currentBreakdownEl.getBoundingClientRect().left >= 200;
+
+      this.height = isBigDetails ? bigDetailsHeight : currentBreakdownHeight;
+    };
+
+    rightNowScrollerEl.addEventListener("scroll", this.updateHeight);
+  },
+  data() {
+    return {
+      height: null
+    };
+  },
   computed: {
-    ...mapState(["currently"])
+    ...mapGetters(["shouldShowThisHour"])
+  },
+  components: {
+    BigDetails,
+    CurrentBreakdown
   }
 };
 </script>
 
 <style>
+.right-now-scroller-wrapper {
+  overflow: hidden;
+  transition: height 400ms ease;
+}
 </style>

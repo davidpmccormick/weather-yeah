@@ -5,9 +5,21 @@
       <p>{{ daily.summary }}</p>
     </div>
     <div>
-      <ul class="no-padding">
-        <Day v-for="i in 8" :index="i - 1" :key="i"/>
-      </ul>
+      <div
+        ref="right-now-scroller"
+        class="overflow-x-auto grid grid-100-100 grid-gap snap-scroll nowrap"
+      >
+        <div class="full-width">
+          <ul class="no-padding">
+            <Day v-for="i in 8" :index="i - 1" :key="i"/>
+          </ul>
+        </div>
+        <div class="full-width">
+          <ul class="no-padding">
+            <DayDetails v-for="i in 8" :index="i - 1" :key="i"/>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -15,10 +27,12 @@
 <script>
 import { mapState } from "vuex";
 import Day from "~/components/Day";
+import DayDetails from "~/components/DayDetails";
 
 export default {
   components: {
-    Day
+    Day,
+    DayDetails
   },
   computed: {
     ...mapState(["daily"])

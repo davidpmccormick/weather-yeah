@@ -3,7 +3,7 @@
     <div class="flex justify-end align-stretch">
       <div class="flex align-stetch justify-between">
         <span
-          class="rain pad flex align-center font-white font-bold"
+          class="rain pad flex align-center font-white font-bold font-xs"
           :style="{
             width: `${mapInputToRange(round(day.precipProbability * 100), [0, 100], [10, 25])}vw`,
             background:
@@ -12,7 +12,10 @@
                 : 'transparent'
           }"
         >
-          <span v-if="day.precipProbability >= 0.2">{{ round(day.precipProbability * 100) }}%</span>
+          <span v-if="day.precipProbability >= 0.2" class="rain-percent-mm">
+            <span>{{ round(day.precipProbability * 100) }}%</span>
+            <span class="font-xs">{{round(day.precipIntensity * 24)}}mm</span>
+          </span>
         </span>
         <span
           class="flex align-center icon-container"
@@ -28,10 +31,7 @@
       </div>
     </div>
     <div class="flex align-stretch justify-center">
-      <div class="date grid uppercase font-s">
-        <span class="day pad-t">{{ formatDay(day.time) }}</span>
-        <span class="number pad-b font-grey">{{ formatDate(day.time) }}</span>
-      </div>
+      <DayDate :time="day.time"/>
     </div>
     <div class="flex align-stretch">
       <div class="temperature flex align-stetch">
@@ -62,9 +62,10 @@
 <script>
 import { mapState, mapGetters } from "vuex";
 import Icon from "~/components/Icon";
+import DayDate from "~/components/DayDate";
 
 export default {
-  components: { Icon },
+  components: { Icon, DayDate },
   props: ["index"],
   computed: {
     ...mapState(["daily"]),
@@ -77,4 +78,8 @@ export default {
 </script>
 
 <style>
+.rain-percent-mm {
+  display: flex;
+  flex-direction: column;
+}
 </style>
