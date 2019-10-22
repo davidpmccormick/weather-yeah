@@ -21,6 +21,11 @@ Vue.mixin({
 
       return `${paddedHours}:${isActualMinutes ? paddedMinutes : "00"}`;
     },
+    formatDayDateAndTime(timestamp, isActualMinutes) {
+      return `${this.formatDay(timestamp)} ${this.formatDate(
+        timestamp
+      )} ${this.formatTime(timestamp, isActualMinutes)}`;
+    },
     formatDay(timestamp) {
       const daysOfWeek = {
         0: "Sun",
@@ -89,6 +94,9 @@ Vue.mixin({
     },
     round(number) {
       return Math.round(number);
+    },
+    toFixed1(number) {
+      return number.toFixed(1);
     },
     iconSrc(icon) {
       return `https://darksky.net/images/weather-icons/${icon}.png`;

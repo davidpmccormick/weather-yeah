@@ -1,8 +1,8 @@
 <template>
   <div
     class="bar"
-    :class="{'is-opaque': isOpaque, 'is-dark': isDark}"
-    @click="setActiveBarIndex(index)"
+    :class="{'is-opaque': isOpaque, 'is-dark': isDark, 'is-alert': alertsForHour.length > 0}"
+    @click="handleBarClick"
   >
     <div
       class="bar__color"
@@ -32,7 +32,8 @@
           class="possible-rain"
           :style="{background: hour.precipProbability >= 0.2 ? '#53d7dd' : 'transparent', height: mapInputToRange(hour.precipProbability, [0, 1], [60, 80]) + 'px'}"
         >
-          <Icon :icon="hour.icon" :dark="isDark"/>
+          <div class="alert-icon" v-if="alertsForHour.length > 0">&#9888;</div>
+          <Icon :icon="hour.icon" :dark="isDark" />
           <div class="rain-percent-mm">
             <span
               class="font-xs"
@@ -62,15 +63,19 @@ export default {
       "sunriseToday",
       "sunsetToday",
       "sunriseTomorrow",
-      "sunsetTomorrow"
+      "sunsetTomorrow",
+      "cleanedAlerts",
     ]),
     mmPerHour() {
-      const mm = this.round(this.hour.precipIntensity);
-
-      return mm === 0 ? "0.5mm" : `${mm}mm`;
+      return `${this.toFixed1(this.hour.precipIntensity)}mm`;
     },
     hour() {
       return this.hours[this.index];
+    },
+    alertsForHour() {
+      return this.cleanedAlerts ? this.cleanedAlerts.filter(a => {
+        return this.isInRange(this.hour.time, [a.time, a.expires])
+      }) : [];
     },
     milliseconds() {
       return Number(`${this.hour.time}000`);
@@ -154,7 +159,18 @@ export default {
     isInRange(value, [start, end]) {
       return value >= start && value <= end;
     },
-    ...mapMutations(["setActiveBarIndex"])
+    handleBarClick() {
+      const isActive = this.index === this.activeBarIndex;
+
+      this.setActiveBarIndex(isActive ? null : this.index);
+      isActive && this.setActiveAlerts([]);
+    },
+    ...mapMutations(["setActiveBarIndex", "setActiveAlerts"])
+  },
+  beforeUpdate() {
+    const isActive = this.index === this.activeBarIndex;
+
+    isActive && this.setActiveAlerts(this.alertsForHour);
   }
 };
 </script>
@@ -223,6 +239,21 @@ export default {
   color: white;
   font-weight: bold;
   font-size: 12px;
+  position: relative;
+}
+
+.alert-icon {
+  position: absolute;
+    top: -4px;
+    left: 2px;
+    color: black;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: #ffce3c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .wind-text {

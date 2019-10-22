@@ -1,8 +1,8 @@
 <template>
   <div class="spaced">
-    <p class="summary" v-if="minutely.summary">{{minutely.summary}}</p>
+    <p class="summary" v-if="minutely">{{minutely.summary}}</p>
     <p class="summary" v-else>{{currently.summary}}.</p>
-    <div class="flex align-center" style="justify-content: space-between;">
+    <div class="big-details">
       <div
         :style="{ backgroundColor: colorForTemperature(currently.temperature), backgroundImage: `url(${iconSrc(currently.icon)})` }"
         style="display: flex; width: 110px; height: 110px; align-items: center; justify-content: center; padding: 20px; border-radius: 9999px;background-size: 80%; background-repeat: no-repeat; background-position: center;"
@@ -10,7 +10,7 @@
       <div style="text-align: center;">
         <strong style="font-size: 3.6em;">{{round(currently.temperature)}}°</strong>
         <p
-          style="color: #aaa; font-weight: bold"
+          style="color: #aaa; font-weight: bold; font-size: 14px;"
         >Feels like {{round(currently.apparentTemperature)}}°</p>
       </div>
       <div
@@ -22,8 +22,8 @@
             :style="{transform: `rotate(${currently.windBearing + 90}deg`}"
           >➤</div>
         </div>
-        <span>{{currentlyWind}}</span>
-        <span>{{humanBearing(currently.windBearing).long}}</span>
+        <span style="font-size: 14px;">{{currentlyWind}}</span>
+        <span style="font-size: 14px;">{{humanBearing(currently.windBearing).long}}</span>
       </div>
     </div>
   </div>
@@ -34,18 +34,26 @@ import { mapState } from "vuex";
 
 export default {
   computed: {
-    ...mapState(["currently", "minutely"]),
+    ...mapState(["currently", "minutely", "location"]),
     currentlyWind() {
       const speed = this.round(this.currently.windSpeed);
       const gust = this.round(this.currently.windGust);
 
       return gust > speed ? `${speed}–${gust}mph` : `${speed}mph`;
     }
+  },
+  updated() {
+    this.$emit("big-details-updated");
   }
 };
 </script>
 
 <style lang="scss">
+.big-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 20px;
+}
 .summary {
   white-space: normal;
   padding-right: 20px;

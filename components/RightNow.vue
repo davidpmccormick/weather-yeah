@@ -7,7 +7,7 @@
         class="overflow-x-auto grid grid-100-100 grid-gap snap-scroll nowrap"
       >
         <div class="full-width">
-          <BigDetails ref="big-details"/>
+          <BigDetails @big-details-updated="handleBigDetailsUpdated" ref="big-details"/>
         </div>
         <div class="full-width">
           <CurrentBreakdown ref="current-breakdown"/>
@@ -28,21 +28,16 @@ export default {
     const bigDetailsEl = this.$refs["big-details"].$el;
     const currentBreakdownEl = this.$refs["current-breakdown"].$el;
 
-    const bigDetailsHeight = bigDetailsEl.getBoundingClientRect().height;
-    const currentBreakdownHeight = currentBreakdownEl.getBoundingClientRect()
-      .height;
-
-    this.height = bigDetailsHeight;
+    this.height = bigDetailsEl.getBoundingClientRect().height;
 
     this.updateHeight = () => {
-      // TODO: throttle this
-      // TODO: removeEventListener in willUnmount();
+      const bigDetailsHeight = bigDetailsEl.getBoundingClientRect().height;
+      const currentBreakdownHeight = currentBreakdownEl.getBoundingClientRect()
+        .height;
       const isBigDetails =
         currentBreakdownEl.getBoundingClientRect().left >= 200;
-
       this.height = isBigDetails ? bigDetailsHeight : currentBreakdownHeight;
     };
-
     rightNowScrollerEl.addEventListener("scroll", this.updateHeight);
   },
   data() {
@@ -56,6 +51,11 @@ export default {
   components: {
     BigDetails,
     CurrentBreakdown
+  },
+  methods: {
+    handleBigDetailsUpdated() {
+      this.updateHeight();
+    }
   }
 };
 </script>

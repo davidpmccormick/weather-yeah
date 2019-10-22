@@ -53,7 +53,7 @@ export default {
       const fifteenToOneHundred = intensity * 25;
       const input = fifteenToOneHundred >= 100 ? 100 : fifteenToOneHundred;
 
-      return `${mapInputToRange(input, [0, 100], [10, 100])}px`;
+      return `${mapInputToRange(input, [0, 100], [10, 75])}px`;
     }
   }
 };
@@ -63,7 +63,7 @@ export default {
 .rain-bars {
   height: 80px;
   position: relative;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #888;
   overflow: hidden;
 }
 
@@ -74,7 +74,7 @@ export default {
   left: 0;
   right: 0;
   font-size: 0.6em;
-  color: #ccc;
+  color: #888;
 }
 
 .downpour {
@@ -109,7 +109,7 @@ export default {
 .dash {
   position: relative;
   flex: 1;
-  border-top: 1px dashed #ccc;
+  border-top: 1px dashed #888;
   transform: translateY(50%);
   z-index: 1;
 }

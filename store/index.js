@@ -1,5 +1,4 @@
 import colorForTemperature from "../utils/color-for-temperature";
-import axios from "axios";
 
 export const state = () => ({
   hours: [],
@@ -11,10 +10,64 @@ export const state = () => ({
   activeBarIndex: null,
   latitude: "51.5638522",
   longitude: "-0.0968134",
-  provider: "darksky"
+  provider: "darksky",
+  location: null,
+  isLocationsActive: false,
+  isUpdating: true,
+  activeAlerts: [],
+  favourites: [
+    {
+      name: "27 Digby Crescent, London, UK",
+      latitude: "51.5638522",
+      longitude: "-0.0968134"
+    },
+    {
+      name: "Kettering, UK",
+      latitude: "52.3967963",
+      longitude: "-0.7509954"
+    },
+    {
+      name: "Beverley, UK",
+      latitude: "53.8410525",
+      longitude: "-0.4668983"
+    },
+    {
+      name: "Glasgow, UK",
+      latitude: "55.8555366",
+      longitude: "-4.3026696"
+    },
+    {
+      name: "Somewhere in Canada",
+      latitude: "56.5334972",
+      longitude: "-61.8930622"
+    }
+  ]
 });
 
 export const getters = {
+  cleanedAlerts(state) {
+    return (
+      state.alerts &&
+      state.alerts.reduce((acc, curr) => {
+        const alreadyIn = acc.some(i => i.title === curr.title);
+
+        return alreadyIn ? acc : [...acc, curr];
+      }, [])
+    );
+  },
+  moonPhase(state) {
+    const phaseNumber = state.daily.data[0].moonPhase;
+
+    if (phaseNumber === 0) return "new";
+    if (phaseNumber < 0.25) return "waxing crescent";
+    if (phaseNumber === 0.25) return "first quarter";
+    if (phaseNumber < 0.5) return "waxing gibbous";
+    if (phaseNumber === 0.5) return "full";
+    if (phaseNumber < 0.75) return "waning gibbous";
+    if (phaseNumber === 0.75) return "last quarter";
+
+    return "waning crescent";
+  },
   sunriseToday(state) {
     return state.daily.data[0].sunriseTime;
   },
@@ -28,30 +81,36 @@ export const getters = {
     return state.daily.data[1].sunsetTime;
   },
   fiveMinutely(state) {
-    return [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
-      .map(interval => {
-        return state.minutely.data
-          .slice(interval, interval + 5)
-          .map(minOfFive => {
-            return [minOfFive.precipIntensity, minOfFive.precipProbability];
-          })
-          .reduce(
-            (acc, curr) => {
-              return [acc[0] + curr[0], acc[1] + curr[1]];
-            },
-            [0, 0]
-          );
-      })
-      .map(([i, p], index) => {
-        return {
-          interval: (index + 1) * 5,
-          intensity: i / 5,
-          probability: p / 5
-        };
-      });
+    return (
+      state.minutely &&
+      [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+        .map(interval => {
+          return state.minutely.data
+            .slice(interval, interval + 5)
+            .map(minOfFive => {
+              return [minOfFive.precipIntensity, minOfFive.precipProbability];
+            })
+            .reduce(
+              (acc, curr) => {
+                return [acc[0] + curr[0], acc[1] + curr[1]];
+              },
+              [0, 0]
+            );
+        })
+        .map(([i, p], index) => {
+          return {
+            interval: (index + 1) * 5,
+            intensity: i / 5,
+            probability: p / 5
+          };
+        })
+    );
   },
   shouldShowThisHour(state, getters) {
-    return getters.fiveMinutely.some(({ probability }) => probability > 0.2);
+    return (
+      getters.fiveMinutely &&
+      getters.fiveMinutely.some(({ probability }) => probability > 0.2)
+    );
   },
   dailyHighRange(state) {
     const sortedRange = state.daily.data
@@ -83,11 +142,43 @@ export const getters = {
 };
 
 export const actions = {
+  async updateCurrentLocation({ commit, dispatch }) {
+    commit("setIsLocationsActive", false);
+    commit("setIsUpdating", true); // TODO: this is duped in getWeatherData - could be tidier?
+
+    window.navigator.geolocation.getCurrentPosition(
+      ({ coords: { latitude, longitude } }) => {
+        commit("setLatitude", latitude);
+        commit("setLongitude", longitude);
+        dispatch("getWeatherData");
+        dispatch("getLocation");
+      }
+    );
+  },
+  updateLocation({ commit, dispatch }, location) {
+    commit("setLatitude", location.latitude);
+    commit("setLongitude", location.longitude);
+    commit("setLocation", location.name);
+    dispatch("getWeatherData");
+    commit("setIsLocationsActive", false);
+  },
+  async getLocation({ commit, state }) {
+    const { data } = await this.$axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
+        state.latitude
+      },${state.longitude}&key=AIzaSyACT9LXR6o1ufwV8jA8BvP2C7CCAUOmhTc`
+    );
+    const firstResult = data.results && data.results[0];
+    const location = firstResult && firstResult.formatted_address;
+
+    commit("setLocation", location);
+  },
   async getWeatherData({ commit, state }) {
+    commit("setIsUpdating", true);
     const {
       data: { minutely, hourly, daily, alerts, currently }
-    } = await axios.get(
-      `/${state.provider}/${state.latitude},${state.longitude}?units=uk2`
+    } = await this.$axios.get(
+      `/darksky/${state.latitude},${state.longitude}?units=uk2`
     );
     commit("setCurrently", currently);
     commit("setHours", hourly.data.slice(1, 25));
@@ -95,10 +186,14 @@ export const actions = {
     commit("setMinutely", minutely);
     commit("setAlerts", alerts);
     commit("setDaily", daily);
+    commit("setIsUpdating", false);
   }
 };
 
 export const mutations = {
+  setIsLocationsActive(state, value) {
+    state.isLocationsActive = value;
+  },
   setProvider(state, value) {
     state.provider = value;
   },
@@ -136,6 +231,15 @@ export const mutations = {
     state.isScrollingBars = value;
   },
   setActiveBarIndex(state, value) {
-    state.activeBarIndex = state.activeBarIndex === value ? null : value;
+    state.activeBarIndex = value;
+  },
+  setLocation(state, value) {
+    state.location = value;
+  },
+  setIsUpdating(state, value) {
+    state.isUpdating = value;
+  },
+  setActiveAlerts(state, value) {
+    state.activeAlerts = value;
   }
 };

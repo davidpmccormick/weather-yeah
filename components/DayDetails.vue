@@ -9,7 +9,7 @@
     <div class="flex align-stretch">
       <p
         class="font-s white-space-normal pad-4"
-      >{{day.summary}} {{round(day.precipIntensity * 24)}}mm. {{round(day.windSpeed)}}mph {{humanBearing(day.windBearing).long}}. Gusts of {{round(day.windGust)}}mph. UV index {{day.uvIndex}}.</p>
+      >{{day.summary}} {{toFixed1(day.precipIntensity * 24)}}mm. {{dayWind}} {{humanBearing(day.windBearing).long}}. UV {{day.uvIndex}}.</p>
     </div>
   </li>
 </template>
@@ -27,6 +27,12 @@ export default {
     ...mapGetters(["dailyHighRange"]),
     day() {
       return this.daily.data[this.index];
+    },
+    dayWind() {
+      const speed = this.round(this.day.windSpeed);
+      const gust = this.round(this.day.windGust);
+
+      return gust > speed ? `${speed}–${gust}mph` : `${speed}mph`;
     }
   }
 };

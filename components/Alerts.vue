@@ -1,27 +1,53 @@
 <template>
-  <div v-if="alerts">
-    <h2>Alerts</h2>
-    <ul>
-      <li v-for="alert in alerts" :key="alert.time">
-        <p>severity: {{alert.severity}}</p>
-        <p>{{alert.title}}</p>
+  <div class="alerts" v-if="cleanedAlerts" @click="toggleIsAlertsActive">
+    <h3 v-if="!isAlertsActive">Alerts</h3>
+    <ul class="alerts-list spaced" v-if="isAlertsActive">
+      <li v-for="alert in cleanedAlerts" :key="alert.title">
+        <p class="alerts-heading">{{alert.title}}</p>
         <p>{{alert.description}}</p>
-        <p>regions: {{alert.regions.join(', ')}}</p>
       </li>
     </ul>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapGetters } from 'vuex';
 
 export default {
+  data() {
+    return {
+      isAlertsActive: false,
+    }
+  },
   computed: {
-    ...mapState(['alerts'])
+    ...mapGetters(['cleanedAlerts'])
+  },
+  methods: {
+    toggleIsAlertsActive() {
+      this.isAlertsActive = !this.isAlertsActive;
+    }
   }
 }
 </script>
 
-<style>
+<style lang="scss">
+  .alerts {
+    background: #ffce3c;
+    padding: 10px 20px;
+    border-radius: 6px;
 
+    h3 {
+      text-align: center;
+    }
+  }
+
+  .alerts-heading {
+    font-weight: bold;
+    margin: 10px 0;
+  }
+
+  .alerts-list {
+    list-style: none;
+    padding: 0;
+  }
 </style>

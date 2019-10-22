@@ -14,7 +14,7 @@
         >
           <span v-if="day.precipProbability >= 0.2" class="rain-percent-mm">
             <span>{{ round(day.precipProbability * 100) }}%</span>
-            <span class="font-xs">{{round(day.precipIntensity * 24)}}mm</span>
+            <span class="font-xs">{{toFixed1(day.precipIntensity * 24)}}mm</span>
           </span>
         </span>
         <span

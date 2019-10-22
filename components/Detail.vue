@@ -28,7 +28,7 @@
             <span class="detail__key">Rain</span>
             <span
               class="detail__value"
-            >{{round(hour.precipProbability * 100)}}% &bull; {{round(hour.precipIntensity)}}mm</span>
+            >{{round(hour.precipProbability * 100)}}% &bull; {{toFixed1(hour.precipIntensity)}}mm</span>
           </li>
           <li>
             <span class="detail__key">Wind</span>

@@ -1,4 +1,5 @@
 export default {
+  loading: false,
   /*
    ** Rendering mode
    ** Doc: https://nuxtjs.org/api/configuration-mode
@@ -51,8 +52,11 @@ export default {
   },
 
   proxy: {
-    "/darksky/":
-      "https://api.darksky.net/forecast/203ec53f5d7b4be890fa89eb808cf55f/"
+    "/darksky": {
+      target:
+        "https://api.darksky.net/forecast/203ec53f5d7b4be890fa89eb808cf55f",
+      pathRewrite: { "^/darksky": "" }
+    }
   },
 
   /*
